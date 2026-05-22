@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="clean-card" style="padding: 2.5rem; text-align: center;">
+            <h2 class="mb-4" style="font-weight: 600; color: var(--text-main); font-size: 1.5rem;">Your Profile</h2>
+            <form method="POST" action="{{ url_for('profile') }}" enctype="multipart/form-data">
+                
+                <div class="mb-4 d-flex justify-content-center">
+                    <div style="position: relative; width: 120px; height: 120px;">
+                        {% if user['profile_image'] %}
+                        <img src="{{ url_for('static', filename='profile_images/' ~ user['profile_image']) }}" alt="Profile" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid var(--border-color);">
+                        {% else %}
+                        <div style="width: 100%; height: 100%; border-radius: 50%; background-color: var(--surface); border: 2px dashed var(--border-color); display: flex; align-items: center; justify-content: center;">
+                            <i class="fa-solid fa-user text-muted" style="font-size: 2rem;"></i>
+                        </div>
+                        {% endif %}
+                        <label for="profile_image" style="position: absolute; bottom: 0; right: 0; background: var(--text-main); color: var(--surface); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid #fff;">
+                            <i class="fa-solid fa-camera" style="font-size: 0.8rem;"></i>
+                        </label>
+                        <input type="file" name="profile_image" id="profile_image" style="display: none;" accept="image/*">
+                    </div>
+                </div>
+
+                <div class="mb-3 text-left">
+                    <label for="username" class="form-label text-muted" style="font-size: 0.85rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Username</label>
+                    <input type="text" class="form-control" name="username" id="username" value="{{ user['username'] }}" required style="border: 1px solid var(--border-color); border-radius: var(--radius); padding: 0.75rem;">
+                </div>
+
+                <div class="mb-4 text-left">
+                    <label for="password" class="form-label text-muted" style="font-size: 0.85rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">New Password</label>
+                    <input type="password" class="form-control" name="password" id="password" placeholder="Leave blank to keep current" style="border: 1px solid var(--border-color); border-radius: var(--radius); padding: 0.75rem;">
+                </div>
+
+                <button type="submit" class="btn btn-dark w-100" style="padding: 0.75rem; font-weight: 500; border-radius: var(--radius); background-color: var(--text-main);">Update Profile</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

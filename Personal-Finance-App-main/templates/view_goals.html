@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Goals{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-xl-11">
+        <div class="clean-card">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
+                <div>
+                    <h2 class="mb-2"><i class="fa-solid fa-bullseye mr-2"></i> Your Financial Goals</h2>
+                    <p class="text-muted mb-0">Track your saving targets and add funds to reach them.</p>
+                </div>
+                <div class="mt-3 mt-md-0">
+                    <a href="{{ url_for('add_goal') }}" class="btn btn-primary">
+                        <i class="fa-solid fa-plus mr-2"></i> Add Goal
+                    </a>
+                </div>
+            </div>
+
+            {% if goals %}
+            <div class="table-responsive">
+                <table class="table table-hover table-striped align-middle">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Goal</th>
+                            <th>Progress</th>
+                            <th>Target</th>
+                            <th>Current</th>
+                            <th style="width: 180px; min-width: 180px;">Add Funds</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for goal in goals %}
+                        <tr>
+                            <td class="text-dark">
+                                <span class="font-weight-bold">{{ goal[2] }}</span>
+                                {% if loop.first and leftovers_history %}
+                                    <div class="mt-2 text-muted" style="font-size: 0.82rem; line-height: 1.5; font-family: inherit;">
+                                        <details style="outline: none;">
+                                            <summary class="font-weight-bold" style="cursor: pointer; color: var(--accent); margin-bottom: 4px; font-size: 0.8rem; list-style: none;">
+                                                <i class="fa-solid fa-clock-rotate-left mr-1"></i> View Monthly Leftovers Added
+                                            </summary>
+                                            <ul class="list-unstyled pl-2 mb-0" style="border-left: 2px solid var(--border-color); margin-top: 4px; padding-left: 8px;">
+                                                {% for item in leftovers_history %}
+                                                    <li style="margin-bottom: 2px;">{{ item.month }}: <span class="font-weight-bold" style="color: #2F855A;">+₹{{ "%.2f"|format(item.amount) }}</span></li>
+                                                {% endfor %}
+                                            </ul>
+                                        </details>
+                                    </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% set percent = (goal[4] / goal[3] * 100) if goal[3] > 0 else 0 %}
+                                <div class="d-flex align-items-center">
+                                    <div class="progress flex-grow-1 mr-2" style="height: 8px; border-radius: 4px; background-color: #E2E8F0; min-width: 80px;">
+                                        <div class="progress-bar" role="progressbar" style="width: {{ percent if percent <= 100 else 100 }}%; background-color: #38b2ac; border-radius: 4px;" aria-valuenow="{{ goal[4] }}" aria-valuemin="0" aria-valuemax="{{ goal[3] }}"></div>
+                                    </div>
+                                    <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">{{ "%.0f"|format(percent) }}%</span>
+                                </div>
+                            </td>
+                            <td class="text-muted">₹{{ "%.2f"|format(goal[3]) }}</td>
+                            <td class="font-weight-bold text-dark">₹{{ "%.2f"|format(goal[4]) }}</td>
+                            <td style="min-width: 180px; vertical-align: middle;">
+                                <form method="POST" action="{{ url_for('add_goal_funds', goal_id=goal[0]) }}" class="d-flex w-100">
+                                    <div class="input-group input-group-sm">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text" style="background: transparent; border-right: none; color: var(--text-muted); padding: 0.25rem 0.5rem; border-color: var(--border-color);">₹</span>
+                                        </div>
+                                        <input type="number" step="0.01" min="0.01" class="form-control form-control-sm" name="amount_to_add" placeholder="Add funds" required style="border-left: none; border-top-right-radius: 0; border-bottom-right-radius: 0; border-color: var(--border-color); height: 31px; font-size: 0.85rem;">
+                                        <div class="input-group-append">
+                                            <button class="btn btn-sm btn-dark" type="submit" style="border-top-left-radius: 0; border-bottom-left-radius: 0; background-color: var(--text-main); border-color: var(--text-main); height: 31px; display: flex; align-items: center; justify-content: center; width: 34px;">
+                                                <i class="fa-solid fa-plus" style="font-size: 0.8rem;"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group" aria-label="Goal actions">
+                                    <a class="btn btn-sm btn-outline-warning" href="{{ url_for('edit_goal', goal_id=goal[0]) }}">
+                                        <i class="fa-solid fa-edit"></i>
+                                    </a>
+                                    <a class="btn btn-sm btn-outline-danger" href="{{ url_for('delete_goal_route', goal_id=goal[0]) }}" onclick="return confirm('Are you sure you want to delete this goal?');">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fa-solid fa-bullseye text-muted mb-3" style="font-size: 3rem;"></i>
+                <h4 class="text-muted">No goals found</h4>
+                <p>Start saving by setting your first financial goal.</p>
+                <a href="{{ url_for('add_goal') }}" class="btn btn-primary mt-2">Add Goal</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

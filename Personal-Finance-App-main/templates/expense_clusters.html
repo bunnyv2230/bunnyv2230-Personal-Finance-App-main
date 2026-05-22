@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block title %}Expense Groups{% endblock %}
+
+{% block content %}
+<style>
+    .nav-pills .nav-link {
+        color: var(--text-muted);
+        background-color: var(--surface);
+        border: 1px solid var(--border-color);
+        transition: all 0.2s ease;
+        font-weight: 500;
+        font-size: 0.95rem;
+        padding: 0.5rem 1.25rem;
+        border-radius: var(--radius);
+    }
+    .nav-pills .nav-link.active, .nav-pills .show > .nav-link {
+        color: var(--surface) !important;
+        background-color: var(--text-main) !important;
+        border-color: var(--text-main);
+    }
+    .nav-pills .nav-link:hover:not(.active) {
+        color: var(--text-main);
+        border-color: var(--accent);
+    }
+</style>
+
+<div class="row justify-content-center">
+    <div class="col-12 col-xl-11">
+        <!-- Header Card -->
+        <div class="clean-card mb-4" style="padding: 2rem;">
+            <h2 class="mb-2" style="font-weight: 600; color: var(--text-main); font-size: 1.5rem;">
+                <i class="fa-solid fa-folder-open text-muted mr-2"></i> Expense Groups
+            </h2>
+            <p class="text-muted mb-0" style="font-size: 0.95rem;">
+                View your expenses organized logically by specific dates or by categories. <span class="badge badge-secondary" style="font-size: 0.8rem; background-color: var(--border-color); color: var(--text-main); font-weight: 600; margin-left: 8px;"><i class="fa-solid fa-filter mr-1"></i> Filtered by: {{ filter_label }}</span>
+            </p>
+        </div>
+
+        <!-- Filter Card -->
+        <div class="clean-card mb-4" style="padding: 1rem 1.5rem;">
+            <div class="row align-items-center">
+                <div class="col-md-4 mb-2 mb-md-0">
+                    <span class="text-muted" style="font-weight: 500; font-size: 0.9rem;"><i class="fa-solid fa-filter mr-1"></i> Filter Groups:</span>
+                </div>
+                <div class="col-md-8">
+                    <div class="d-flex justify-content-md-end align-items-center flex-wrap" style="gap: 8px;">
+                        <select id="groupRange" class="form-control" style="width: auto; min-width: 240px; border-radius: var(--radius); border-color: var(--border-color); font-size: 0.875rem; padding: 0.375rem 0.75rem;">
+                            <option value="this_month" {% if current_filters.range_type == 'this_month' %}selected{% endif %}>This Month</option>
+                            <option value="last_2_months" {% if current_filters.range_type == 'last_2_months' %}selected{% endif %}>Last 2 Months</option>
+                            <option value="last_3_months" {% if current_filters.range_type == 'last_3_months' %}selected{% endif %}>Last 3 Months</option>
+                            <option value="last_4_months" {% if current_filters.range_type == 'last_4_months' %}selected{% endif %}>Last 4 Months</option>
+                            <option value="last_6_months" {% if current_filters.range_type == 'last_6_months' %}selected{% endif %}>Last 6 Months</option>
+                            <option value="all_time" {% if current_filters.range_type == 'all_time' %}selected{% endif %}>All Time</option>
+                            <option value="custom_month" {% if current_filters.range_type == 'custom_month' %}selected{% endif %}>Custom Month...</option>
+                            <option value="custom_range" {% if current_filters.range_type == 'custom_range' %}selected{% endif %}>Custom Date Range...</option>
+                        </select>
+                        <input type="month" id="groupMonth" class="form-control" value="{{ current_filters.month_val }}" style="max-width: 200px; border-radius: var(--radius); border-color: var(--border-color); font-size: 0.875rem; padding: 0.375rem 0.75rem; {% if current_filters.range_type != 'custom_month' %}display: none;{% endif %}">
+                        
+                        <div id="customGroupRangeInputs" style="{% if current_filters.range_type == 'custom_range' %}display: flex;{% else %}display: none;{% endif %} align-items: center; gap: 8px;">
+                            <input type="date" id="groupStartDate" class="form-control" value="{{ current_filters.start_date_val }}" style="max-width: 160px; border-radius: var(--radius); border-color: var(--border-color); font-size: 0.875rem; padding: 0.375rem 0.75rem;">
+                            <span class="text-muted" style="font-size: 0.875rem;">to</span>
+                            <input type="date" id="groupEndDate" class="form-control" value="{{ current_filters.end_date_val }}" style="max-width: 160px; border-radius: var(--radius); border-color: var(--border-color); font-size: 0.875rem; padding: 0.375rem 0.75rem;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <ul class="nav nav-pills mb-4" id="groupTabs" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" id="date-tab" data-toggle="pill" href="#by-date-group" role="tab" aria-controls="by-date-group" aria-selected="true">
+                    <i class="fa-solid fa-calendar-days mr-2"></i> Group by Date
+                </a>
+            </li>
+            <li class="nav-item ml-2">
+                <a class="nav-link" id="category-tab" data-toggle="pill" href="#by-category-group" role="tab" aria-controls="by-category-group" aria-selected="false">
+                    <i class="fa-solid fa-tags mr-2"></i> Group by Category
+                </a>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="groupTabsContent">
+            <!-- Group by Date Tab -->
+            <div class="tab-pane fade show active" id="by-date-group" role="tabpanel" aria-labelledby="date-tab">
+                {% if not by_date %}
+                    <div class="clean-card text-center p-5">
+                        <i class="fa-solid fa-calendar-xmark text-muted mb-3" style="font-size: 2.5rem;"></i>
+                        <h4 style="font-weight: 600; color: var(--text-main);">No Expenses Found</h4>
+                        <p class="text-muted mb-0">There are no expenses recorded for the selected time range ({{ filter_label }}).</p>
+                    </div>
+                {% else %}
+                    <div class="row">
+                        {% for date, expenses in by_date.items() %}
+                            <div class="col-md-6 mb-4">
+                                <div class="clean-card h-100" style="padding: 1.5rem;">
+                                    <div class="d-flex justify-content-between align-items-center mb-3" style="border-bottom: 2px solid var(--surface); padding-bottom: 0.5rem;">
+                                        <h4 style="font-weight: 600; color: var(--text-main); font-size: 1.1rem; margin-bottom: 0;">{{ date }}</h4>
+                                        {% set day_sum = namespace(value=0) %}
+                                        {% for expense in expenses %}
+                                            {% set day_sum.value = day_sum.value + expense.amount %}
+                                        {% endfor %}
+                                        <span class="badge badge-dark" style="font-size: 0.9rem; background-color: var(--text-main); color: var(--surface);">₹{{ "%.2f"|format(day_sum.value) }}</span>
+                                    </div>
+                                    <div style="max-height: 250px; overflow-y: auto;">
+                                        <ul class="list-unstyled mb-0">
+                                            {% for expense in expenses %}
+                                                <li class="py-2" style="border-bottom: 1px solid var(--border-color);">
+                                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                                        <span style="font-weight: 500; color: var(--text-main);">₹{{ "%.2f"|format(expense.amount) }}</span>
+                                                        <span class="badge badge-secondary" style="font-size: 0.75rem; background-color: var(--border-color); color: var(--text-main); font-weight: 500;">{{ expense.category }}</span>
+                                                    </div>
+                                                    {% if expense.description %}
+                                                        <div class="text-muted" style="font-size: 0.85rem;">{{ expense.description }}</div>
+                                                    {% endif %}
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Group by Category Tab -->
+            <div class="tab-pane fade" id="by-category-group" role="tabpanel" aria-labelledby="category-tab">
+                {% if not by_category %}
+                    <div class="clean-card text-center p-5">
+                        <i class="fa-solid fa-tags text-muted mb-3" style="font-size: 2.5rem;"></i>
+                        <h4 style="font-weight: 600; color: var(--text-main);">No Expenses Found</h4>
+                        <p class="text-muted mb-0">There are no expenses recorded for the selected time range ({{ filter_label }}).</p>
+                    </div>
+                {% else %}
+                    <div class="row">
+                        {% for category, expenses in by_category.items() %}
+                            <div class="col-md-6 mb-4">
+                                <div class="clean-card h-100" style="padding: 1.5rem;">
+                                    <div class="d-flex justify-content-between align-items-center mb-3" style="border-bottom: 2px solid var(--surface); padding-bottom: 0.5rem;">
+                                        <h4 style="font-weight: 600; color: var(--text-main); font-size: 1.1rem; margin-bottom: 0;">{{ category }}</h4>
+                                        {% set cat_sum = namespace(value=0) %}
+                                        {% for expense in expenses %}
+                                            {% set cat_sum.value = cat_sum.value + expense.amount %}
+                                        {% endfor %}
+                                        <span class="badge badge-dark" style="font-size: 0.9rem; background-color: var(--text-main); color: var(--surface);">₹{{ "%.2f"|format(cat_sum.value) }}</span>
+                                    </div>
+                                    <div style="max-height: 250px; overflow-y: auto;">
+                                        <ul class="list-unstyled mb-0">
+                                            {% for expense in expenses %}
+                                                <li class="py-2" style="border-bottom: 1px solid var(--border-color);">
+                                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                                        <span style="font-weight: 500; color: var(--text-main);">₹{{ "%.2f"|format(expense.amount) }}</span>
+                                                        <span class="text-muted" style="font-size: 0.8rem;">{{ expense.date }}</span>
+                                                    </div>
+                                                    {% if expense.description %}
+                                                        <div class="text-muted" style="font-size: 0.85rem;">{{ expense.description }}</div>
+                                                    {% endif %}
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var rangeSelect = document.getElementById('groupRange');
+        var monthInput = document.getElementById('groupMonth');
+        var customRangeInputs = document.getElementById('customGroupRangeInputs');
+        var startDateInput = document.getElementById('groupStartDate');
+        var endDateInput = document.getElementById('groupEndDate');
+
+        function triggerFilter() {
+            var range = rangeSelect.value;
+            var month = monthInput.value;
+            var startDate = startDateInput.value;
+            var endDate = endDateInput.value;
+
+            var params = new URLSearchParams();
+            params.set('range', range);
+            if (range === 'custom_month' && month) {
+                params.set('month', month);
+            } else if (range === 'custom_range' && startDate && endDate) {
+                params.set('start_date', startDate);
+                params.set('end_date', endDate);
+            }
+
+            window.location.search = params.toString();
+        }
+
+        rangeSelect.addEventListener('change', function() {
+            var range = rangeSelect.value;
+            if (range === 'custom_month') {
+                monthInput.style.display = 'inline-block';
+                customRangeInputs.style.display = 'none';
+            } else if (range === 'custom_range') {
+                monthInput.style.display = 'none';
+                customRangeInputs.style.display = 'flex';
+            } else {
+                monthInput.style.display = 'none';
+                customRangeInputs.style.display = 'none';
+                triggerFilter();
+            }
+        });
+
+        monthInput.addEventListener('change', triggerFilter);
+        startDateInput.addEventListener('change', triggerFilter);
+        endDateInput.addEventListener('change', triggerFilter);
+    });
+</script>
+{% endblock %}

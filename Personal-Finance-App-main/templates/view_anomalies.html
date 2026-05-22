@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Anomalies in Expenses{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-xl-11">
+        <div class="clean-card mb-4" style="padding: 2rem;">
+            <h2 class="mb-4" style="font-weight: 600; color: var(--text-main); font-size: 1.5rem;"><i class="fa-solid fa-triangle-exclamation text-muted mr-2"></i> Spending Anomalies</h2>
+            <p class="text-muted mb-4" style="font-size: 0.95rem;">Our AI model has analyzed your spending history to detect any unusual or unexpected expenses.</p>
+            
+            {% if anomalies.empty %}
+                <div class="text-center py-5">
+                    <i class="fa-solid fa-shield-check text-muted mb-3" style="font-size: 3rem; color: #38b2ac !important;"></i>
+                    <h4 class="text-muted mb-2">No Anomalies Detected</h4>
+                    <p class="text-muted small">Your spending appears to be normal and consistent with past behavior.</p>
+                </div>
+            {% else %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">Date</th>
+                                <th style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for index, row in anomalies.iterrows() %}
+                            <tr>
+                                <td style="color: var(--text-muted);">{{ row.name.strftime('%Y-%m-%d') }}</td>
+                                <td style="font-weight: 600; color: #dd6b20;">₹{{ "%.2f"|format(row['amount']) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

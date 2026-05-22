@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Predict Expenses{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-xl-11">
+        <div class="clean-card mb-4" style="padding: 2rem;">
+            <h2 class="mb-4" style="font-weight: 600; color: var(--text-main); font-size: 1.5rem;"><i class="fa-solid fa-chart-line text-muted mr-2"></i> Expense Forecast</h2>
+            <p class="text-muted mb-4" style="font-size: 0.95rem;">Our AI model analyzes your past spending to predict next month's total expenses, helping you budget proactively.</p>
+            {% if error %}
+                <div class="alert alert-warning text-center" style="background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; border-radius: var(--radius); padding: 1rem;">
+                    <i class="fa-solid fa-triangle-exclamation mr-2"></i> {{ error }}
+                </div>
+            {% else %}
+                <div class="p-4 mb-4 text-center" style="background-color: var(--surface); border: 1px solid var(--border-color); border-radius: var(--radius);">
+                    <h5 class="text-muted" style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">Predicted Next Month</h5>
+                    <div style="font-size: 2.5rem; font-weight: 700; color: #dd6b20;">₹{{ "%.2f"|format(prediction) }}</div>
+                </div>
+                <div style="height: 400px; width: 100%; margin-bottom: 3rem;">
+                    <canvas id="expenseChart"></canvas>
+                </div>
+                
+                <h3 class="mt-5 mb-4" style="font-weight: 600; color: var(--text-main); font-size: 1.25rem;"><i class="fa-solid fa-chart-pie text-muted mr-2"></i> Category Forecast Breakdown</h3>
+                <div class="row">
+                    {% for item in category_breakdown %}
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="clean-card h-100" style="padding: 1.5rem; transition: transform 0.2s ease, box-shadow 0.2s ease; border: 1px solid var(--border-color); border-radius: var(--radius); background: var(--surface);">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center mr-3" style="width: 45px; height: 45px; background-color: 
+                                        {% if item.category.lower() in ['food', 'dining'] %}rgba(40, 167, 69, 0.1)
+                                        {% elif item.category.lower() in ['transport', 'petrol', 'fuel', 'cab'] %}rgba(0, 123, 255, 0.1)
+                                        {% elif item.category.lower() in ['rent', 'housing'] %}rgba(253, 126, 20, 0.1)
+                                        {% elif item.category.lower() in ['entertainment', 'movies', 'leisure'] %}rgba(220, 53, 69, 0.1)
+                                        {% elif item.category.lower() in ['utilities', 'electricity', 'water', 'bills'] %}rgba(255, 193, 7, 0.1)
+                                        {% else %}rgba(108, 117, 125, 0.1){% endif %}; color:
+                                        {% if item.category.lower() in ['food', 'dining'] %}#28a745
+                                        {% elif item.category.lower() in ['transport', 'petrol', 'fuel', 'cab'] %}#007bff
+                                        {% elif item.category.lower() in ['rent', 'housing'] %}#fd7e14
+                                        {% elif item.category.lower() in ['entertainment', 'movies', 'leisure'] %}#dc3545
+                                        {% elif item.category.lower() in ['utilities', 'electricity', 'water', 'bills'] %}#ffc107
+                                        {% else %}#6c757d{% endif %}; font-size: 1.2rem;">
+                                        <i class="fa-solid 
+                                            {% if item.category.lower() in ['food', 'dining'] %}fa-utensils
+                                            {% elif item.category.lower() in ['transport', 'petrol', 'fuel', 'cab'] %}fa-gas-pump
+                                            {% elif item.category.lower() in ['rent', 'housing'] %}fa-house-chimney
+                                            {% elif item.category.lower() in ['entertainment', 'movies', 'leisure'] %}fa-ticket
+                                            {% elif item.category.lower() in ['utilities', 'electricity', 'water', 'bills'] %}fa-bolt
+                                            {% else %}fa-tags{% endif %}"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="mb-0" style="font-size: 1.1rem; font-weight: 600; color: var(--text-main);">{{ item.category }}</h4>
+                                        <span class="text-muted" style="font-size: 0.75rem; font-weight: 500; text-transform: uppercase;">Next Month Forecast</span>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-baseline mb-2">
+                                    <span style="font-size: 1.75rem; font-weight: 700; color: var(--text-main);">₹{{ "%.2f"|format(item.forecasted_amount) }}</span>
+                                </div>
+                                <div class="progress" style="height: 6px; border-radius: 3px; background-color: var(--border-color);">
+                                    <div class="progress-bar" role="progressbar" style="width: {{ item.percentage }}%; background-color: 
+                                        {% if item.category.lower() in ['food', 'dining'] %}#28a745
+                                        {% elif item.category.lower() in ['transport', 'petrol', 'fuel', 'cab'] %}#007bff
+                                        {% elif item.category.lower() in ['rent', 'housing'] %}#fd7e14
+                                        {% elif item.category.lower() in ['entertainment', 'movies', 'leisure'] %}#dc3545
+                                        {% elif item.category.lower() in ['utilities', 'electricity', 'water', 'bills'] %}#ffc107
+                                        {% else %}#6c757d{% endif %};" aria-valuenow="{{ item.percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                <div class="d-flex justify-content-between mt-2" style="font-size: 0.8rem; font-weight: 500; color: var(--text-muted);">
+                                    <span>Share of Budget</span>
+                                    <span>{{ "%.1f"|format(item.percentage) }}%</span>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    {% if not error %}
+    var ctx = document.getElementById('expenseChart').getContext('2d');
+    var expenseChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ labels | tojson | safe }},
+            datasets: [
+                {
+                    label: 'Actual Expenses',
+                    data: {{ actual_expenses | tojson | safe }},
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    fill: false
+                },
+                {
+                    label: 'Predicted Expenses',
+                    data: {{ predicted_expenses | tojson | safe }},
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    fill: false
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Date'
+                    }
+                },
+                y: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Amount'
+                    }
+                }
+            }
+        }
+    });
+    {% endif %}
+</script>
+{% endblock %}
